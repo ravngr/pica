@@ -798,7 +798,6 @@ def main():
                 country=args.cert_country,
                 state=args.cert_state,
                 city=args.cert_city,
-                email=args.cert_email,
                 days=args.cert_days,
                 bits=args.cert_bits,
                 encrypt=args.cert_encrypt,
@@ -809,7 +808,11 @@ def main():
             try:
                 CertificateAuthority.create(db, caRootPath, args.ca_id, args.ca_parent, args.ca_chain, args.ca_policy, args.ca_crl, args.ca_issue, args.ca_ocsp, req)
             except:
-                CertificateAuthority.delete(db, caRootPath, args.ca_id)
+                try:
+                    CertificateAuthority.delete(db, caRootPath, args.ca_id)
+                except:
+                    pass
+
                 raise
 
             print 'Created new CA: ' + args.ca_id
@@ -909,6 +912,8 @@ def main():
             if subprocess.call(cmdCRL.split(' ')):
                 raise CertificateException('Failed to convert CRL')
 
+            os.unlink(cnfFile.name)
+
             print 'Generated CRL: ' + ca.name
     elif args.action == 'ls':
         # List all known CAs and their children
@@ -955,7 +960,10 @@ def main():
 
     # Delete temporary config file if generated
     if cnfFile:
-        os.unlink(cnfFile.name)
+        try:
+            os.unlink(cnfFile.name)
+        except:
+            pass
 
 if __name__ == '__main__':
     main()
